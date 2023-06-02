@@ -26,7 +26,6 @@ const addContainer = (e) => {
   deleteContainer.innerHTML = `<i class="bi bi-trash"></i>`;
   newHeading.appendChild(deleteContainer);
   newContainer.appendChild(newHeading);
-  console.log(addContainerInputValue);
 
   const newGroceryContainer = document.createElement("section");
   newGroceryContainer.classList.add("groceryContainer");
@@ -85,6 +84,8 @@ const bindEventListeners = (container) => {
   });
   containerGroceryList.addEventListener("drop", drop);
   containerGroceryList.addEventListener("dragover", allowDrop);
+  containerGroceryList.addEventListener("touchstart", touchStart);
+  containerGroceryList.addEventListener("touchend", touchEnd);
 };
 
 const drag = (event) => {
@@ -112,6 +113,27 @@ const drop = (event) => {
 
 const allowDrop = (event) => {
   event.preventDefault();
+};
+const touchStart = (event) => {
+  // Store the touched element and its container
+  draggedElement = event.target;
+  draggedContainer = event.target.closest(".groceryContainer");
+
+  // Add a CSS class to visually indicate the dragging
+  draggedElement.classList.add("dragging");
+};
+const touchEnd = (event) => {
+  // Remove the CSS class for dragging
+  draggedElement.classList.remove("dragging");
+
+  // Check if the drop target is valid and perform the drop
+  const container = event.target.closest(".groceryContainer");
+  if (container !== draggedContainer) {
+    const textInput = draggedContainer.querySelector(".textInput");
+    const submitBtn = draggedContainer.querySelector(".submitBtn");
+    container.querySelector(".groceryList").appendChild(draggedElement);
+    setBackToDefault(textInput, submitBtn);
+  }
 };
 
 const addItem = (
@@ -156,6 +178,7 @@ const addItem = (
   } else if (textInputValue !== "" && editFlag) {
     const editElement = containerGroceryList.querySelector(".title");
     editElement.innerHTML = textInputValue;
+    console.log(editElement);
     setBackToDefault(containerTextInput, containerSubmitBtn);
   }
 };
@@ -184,9 +207,9 @@ const editItem = (e, containerTextInput, containerSubmitBtn) => {
   const editElement = e.currentTarget.parentElement.previousElementSibling;
   const textInput = containerTextInput;
   const submitBtn = containerSubmitBtn;
-
   textInput.value = editElement.innerHTML;
   editFlag = true;
+
   editElement.parentElement.setAttribute(
     "data-edit-id",
     editElement.parentElement.getAttribute("id")
