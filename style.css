@@ -121,7 +121,7 @@ form {
   text-transform: capitalize;
   font-size: 0.9rem;
   font-weight: 500;
-  letter-spacing: 0.04em;
+
   transition: all 0.3s ease-in;
   cursor: grab;
 }
@@ -131,6 +131,20 @@ form {
 }
 .groceryItems:hover {
   transform: scale(1.05, 1.05);
+}
+.title {
+  background: transparent;
+  border: none;
+  font-size: 0.9rem;
+  text-transform: capitalize;
+  padding: 0.3em;
+  outline: none;
+  letter-spacing: 0.04em;
+  cursor: grab;
+}
+.title1 {
+  border: 1px solid rgb(172, 171, 171);
+  cursor: auto;
 }
 .editBtn {
   color: rgb(1, 80, 1);

@@ -67,9 +67,6 @@ const addContainer = (e) => {
 
   bindEventListeners(newGroceryContainer);
   addContainerInput.value = "";
-  const id = new Date().getTime().toString();
-  const containerName = addContainerInputValue;
-  addToLocalStorage(id, containerName, "", "");
 };
 const deleteContainerFunc = (e, container) => {
   e.preventDefault();
@@ -174,10 +171,10 @@ const addItem = (
       const key =
         e.target.parentElement.parentElement.parentElement
           .previousElementSibling.firstChild.innerText;
-      const id = editElement.parentElement.getAttribute("data-id");
-      const itemId = editElement.parentElement.getAttribute("id");
-      const value = editElement.firstChild.value;
-      editLocalStorage(id, itemId, value);
+
+      const id = e.target.parentElement.id;
+      console.log(id);
+      editLocalStorage(id, eleFirstChildValue, key);
       setBackToDefault(textInput);
     });
 
@@ -192,12 +189,7 @@ const addItem = (
       e.target.parentElement.parentElement.previousElementSibling.firstChild
         .innerText;
     setBackToDefault(containerTextInput, containerSubmitBtn);
-    const id = containerGroceryList
-      .closest(".mainContainer")
-      .getAttribute("data-id");
-    const value = textInputValue;
-    const itemId = new Date().getTime().toString();
-    addToLocalStorage(id, "", itemId, value);
+    addToLocalStorage(id, textInputValue, key);
   }
 };
 
@@ -228,7 +220,7 @@ const editItem = (e, containerTextInput) => {
 
 const deleteItem = (e) => {
   const element = e.currentTarget.parentElement.parentElement;
-  // const id = element.getAttribute("id");
+  const id = element.getAttribute("id");
   element.classList.add("textDeco");
 
   setTimeout(() => {
@@ -240,88 +232,37 @@ const deleteItem = (e) => {
       .parentElement.previousElementSibling.firstChild.innerText;
 
   setBackToDefault(textInput, submitBtn);
-  const id = element.closest(".mainContainer").getAttribute("data-id");
-  const itemId = element.getAttribute("id");
-  removeFromLocalStorage(id, itemId);
+  removeFromLocalStorage(id, key);
 };
 
 // ******Local Storage******
-const addToLocalStorage = (id, name, itemId, value) => {
-  let containers = getLocalStorage("containers");
-  let container = containers.find((c) => c.id === id);
-  if (container) {
-    container.items.push({ itemId, value });
-  } else {
-    containers.push({ id, name, items: [{ itemId, value }] });
-  }
-  localStorage.setItem("containers", JSON.stringify(containers));
+const addToLocalStorage = (id, value, key) => {
+  const grocery = { id, value };
+  let items = getLocalStorage(key);
+  items.push(grocery);
+  localStorage.setItem(key, JSON.stringify(items));
 };
-
 const getLocalStorage = (key) => {
   return localStorage.getItem(key) ? JSON.parse(localStorage.getItem(key)) : [];
 };
 
-const removeFromLocalStorage = (id, itemId) => {
-  let containers = getLocalStorage("containers");
-  let container = containers.find((c) => c.id === id);
-  if (container) {
-    container.items = container.items.filter((item) => item.itemId !== itemId);
-    if (container.items.length === 0) {
-      containers = containers.filter((c) => c.id !== id);
-    }
-    localStorage.setItem("containers", JSON.stringify(containers));
-  }
+const removeFromLocalStorage = (id, key) => {
+  let items = getLocalStorage(key);
+  items = items.filter((item) => {
+    return item.id !== id;
+  });
+  localStorage.setItem(key, JSON.stringify(items));
 };
 
-const editLocalStorage = (id, itemId, value) => {
-  let containers = getLocalStorage("containers");
-  let container = containers.find((c) => c.id === id);
-  if (container) {
-    let item = container.items.find((item) => item.itemId === itemId);
-    if (item) {
+const editLocalStorage = (id, value, key) => {
+  let items = getLocalStorage(key);
+  items = items.map((item) => {
+    if (item.id === id) {
       item.value = value;
-      localStorage.setItem("containers", JSON.stringify(containers));
     }
-  }
-};
-
-const createContainer = (id, name) => {
-  const mainContainer = document.createElement("div");
-  mainContainer.classList.add("mainContainer");
-  mainContainer.setAttribute("data-id", id);
-
-  const containerHeader = document.createElement("div");
-  containerHeader.classList.add("containerHeader");
-  containerHeader.textContent = name;
-
-  const containerGroceryList = document.createElement("ul");
-  containerGroceryList.classList.add("groceryList");
-
-  const containerForm = document.createElement("form");
-  containerForm.classList.add("containerForm");
-  containerForm.addEventListener("submit", addItem);
-
-  const containerTextInput = document.createElement("input");
-  containerTextInput.classList.add("containerTextInput");
-  containerTextInput.setAttribute("type", "text");
-  containerTextInput.setAttribute("placeholder", "Add an item");
-  containerTextInput.required = true;
-
-  const containerSubmitBtn = document.createElement("button");
-  containerSubmitBtn.classList.add("containerSubmitBtn");
-  containerSubmitBtn.setAttribute("type", "submit");
-  containerSubmitBtn.textContent = "Add";
-
-  containerForm.appendChild(containerTextInput);
-  containerForm.appendChild(containerSubmitBtn);
-
-  mainContainer.appendChild(containerHeader);
-  mainContainer.appendChild(containerGroceryList);
-  mainContainer.appendChild(containerForm);
-
-  document.body.appendChild(mainContainer);
-
-  return mainContainer;
+    return item;
+  });
+  localStorage.setItem(key, JSON.stringify(items));
 };
 
 const createListItems = (containerGroceryList, id, value) => {
@@ -369,32 +310,17 @@ const setUpItems = () => {
   containerElements.forEach((container) => {
     const groceryList = container.querySelector(".groceryList");
     const containerHeading = container.querySelector(".mainHeading p");
-    if (containerHeading) {
-      const containerKey = containerHeading.textContent.trim();
-      let items = getLocalStorage(containerKey);
-      if (items.length > 0) {
-        items.forEach((item) => {
-          createListItems(groceryList, item.id, item.value);
-        });
-      }
-    }
-    bindEventListeners(container);
-  });
-};
+    const containerKey = containerHeading.textContent.trim();
+    console.log(containerKey);
 
-const loadDataFromLocalStorage = () => {
-  let containers = getLocalStorage("containers");
-  containers.forEach((container) => {
-    const { id, name, items } = container;
-    const newContainer = createContainer(id, name);
-    items.forEach((item) => {
-      const { itemId, value } = item;
-      createListItems(
-        newContainer.querySelector(".groceryList"),
-        itemId,
-        value
-      );
-    });
+    let items = getLocalStorage(containerKey);
+    if (items.length > 0) {
+      items.forEach((item) => {
+        createListItems(groceryList, item.id, item.value);
+      });
+    }
+
+    bindEventListeners(container);
   });
 };
 
@@ -405,7 +331,4 @@ form.addEventListener("submit", (e) =>
 groceryList.addEventListener("drop", drop);
 groceryList.addEventListener("dragover", allowDrop);
 addContainerForm.addEventListener("submit", addContainer);
-window.addEventListener("DOMContentLoaded", () => {
-  loadDataFromLocalStorage();
-  setUpItems();
-});
+window.addEventListener("DOMContentLoaded", setUpItems);
