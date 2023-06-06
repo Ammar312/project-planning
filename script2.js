@@ -112,27 +112,25 @@ const allowDrop = (event) => {
   event.preventDefault();
 };
 const touchStart = (event) => {
-  // Store the touched element and its container
+  event.preventDefault();
   draggedElement = event.target;
   draggedContainer = event.target.closest(".groceryContainer");
-
-  // Add a CSS class to visually indicate the dragging
   draggedElement.classList.add("dragging");
 };
-const touchEnd = (event) => {
-  // Remove the CSS class for dragging
-  draggedElement.classList.remove("dragging");
 
-  // Check if the drop target is valid and perform the drop
+const touchEnd = (event) => {
+  event.preventDefault();
+  draggedElement.classList.remove("dragging");
   const container = event.target.closest(".groceryContainer");
   if (container !== draggedContainer) {
     const textInput = draggedContainer.querySelector(".textInput");
     const submitBtn = draggedContainer.querySelector(".submitBtn");
     container.querySelector(".groceryList").appendChild(draggedElement);
-    setBackToDefault(textInput, submitBtn);
+    setBackToDefault(textInput);
   }
 };
-
+groceryList.addEventListener("touchstart", touchStart);
+groceryList.addEventListener("touchend", touchEnd);
 const addItem = (
   e,
   containerTextInput,
